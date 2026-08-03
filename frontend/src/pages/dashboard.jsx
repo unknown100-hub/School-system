@@ -31,5 +31,6 @@ export default function Dashboard({ students = [], studentCount = 0, onAddStuden
         {activeTab === 'Settings' && <SettingsPanel />}
       </section>
     </div>
+
   );
 }
