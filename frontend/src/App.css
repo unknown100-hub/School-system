@@ -59,6 +59,11 @@ input::placeholder { color: #8a9691; }
 .dashboard-nav button:hover { background: rgba(255,255,255,.08); }
 .dashboard-nav .dashboard-nav-active { color: #173c3d; background: #e8d8b2; }
 .sidebar-card { margin: 22px 0 16px; padding: 14px; border: 1px solid rgba(255,255,255,.16); border-radius: 14px; background: rgba(255,255,255,.08); }
+.sidebar-student-list { display: grid; gap: 8px; margin-top: 10px; }
+.student-link { width: 100%; text-align: left; padding: 11px 14px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; background: rgba(255,255,255,.04); color: #f1f5f1; cursor: pointer; transition: all .2s ease; }
+.student-link:hover { background: rgba(255,255,255,.12); }
+.student-link.active { background: #fff; color: #173c3d; }
+.student-link.empty { border-color: rgba(255,255,255,.10); color: #c9d7cf; cursor: default; background: rgba(255,255,255,.03); }
 .sidebar-card p { margin: 0 0 6px; color: #c9d7cf; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
 .sidebar-card strong { color: #fff; font-size: 14px; }
 .profile-card { display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 18px; border: 1px solid rgba(255,255,255,.16); border-radius: 14px; background: rgba(255,255,255,.06); }
@@ -115,11 +120,18 @@ input::placeholder { color: #8a9691; }
 .progress-fill.fill-2 { background: linear-gradient(90deg, #4f8a7f 0%, #a8d1c0 100%); }
 .progress-fill.fill-3 { background: linear-gradient(90deg, #d9b86f 0%, #f0c96b 100%); }
 .insight-card small { display: block; margin-top: 8px; color: #6a7771; }
-.student-table { display: grid; gap: 8px; }
-.student-table-head, .student-table-row { display: grid; grid-template-columns: 1.4fr 1.2fr 1fr .8fr; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #ece6d8; }
-.student-table-row:hover { background: #fbf7ee; border-radius: 10px; }
-.student-table-head { color: #8c958f; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.student-list-card { padding: 18px; border-radius: 20px; background: #fffdf8; border: 1px solid #e7dfcf; box-shadow: 0 18px 40px rgba(23, 60, 61, .08); }
+.student-table-head, .student-table-row { display: grid; grid-template-columns: 1.4fr 1.2fr 1fr .8fr; gap: 12px; align-items: center; }
+.student-table-head { padding: 12px 0; border-bottom: 1px solid #ece6d8; color: #8c958f; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.student-list-body { display: grid; gap: 10px; margin-top: 12px; max-height: 420px; overflow: auto; }
+.student-table-row { padding: 14px 0; border-radius: 16px; border: 1px solid transparent; transition: background .2s ease, border-color .2s ease; cursor: default; }
+.student-table-row:hover { background: #fbf7ee; border-color: #e8e1d4; }
 .student-table-row span:first-child { font-weight: 700; color: #203836; }
+.student-table-row span { color: #4f5f57; }
+.student-list-empty { padding: 24px 0; color: #6c817b; text-align: center; }
+.student-detail-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #ffffff; border: 1px solid #e8eee9; }
+.student-detail-row span { color: #6a7f78; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+.student-detail-row strong { color: #213a36; font-weight: 700; }
 .status-pill { display: inline-block; width: fit-content; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .status-pill.present { background: #e2efe8; color: #2f6b53; }
 .status-pill.late { background: #f8e6c8; color: #915d14; }
@@ -127,3 +139,23 @@ input::placeholder { color: #8a9691; }
 @keyframes stamp { from { opacity: 0; transform: rotate(-4deg) scale(1.3); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
 @keyframes arrive { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
 @media (max-width: 780px) { .portal-shell { grid-template-columns: 1fr; }.staff-roll { padding: 36px 28px; }.ledger-note { margin-bottom: 20px; }.staff-member { min-height: 74px; }.auth-area { padding: 40px 24px; }.auth-card, .demo-note { max-width: 490px; }.dashboard-shell { grid-template-columns: 1fr; }.dashboard-sidebar { min-height: auto; padding: 26px; }.dashboard-sidebar h1 { margin-bottom: 20px; }.dashboard-nav { grid-template-columns: repeat(3, 1fr); }.dashboard-nav button { font-size: 12px; }.signout-button { width: auto; margin-top: 22px; }.dashboard-content { padding: 24px; }.dashboard-stats, .dashboard-grid, .insight-grid { grid-template-columns: 1fr; }.dashboard-header { flex-direction: column; margin-bottom: 20px; }.hero-card { flex-direction: column; align-items: flex-start; } }
+
+/* Add Student page styles */
+.add-student-page { padding: 20px 0; }
+.add-student-shell { background: #fffdf8; padding: 20px; border-radius: 18px; box-shadow: 0 12px 30px rgba(23,60,61,.06); border: 1px solid #e7dfcf; }
+.add-student-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.add-student-header h2 { margin: 0; font: 700 20px 'Playfair Display', serif; }
+.add-student-grid { display: grid; grid-template-columns: 1fr 1fr 320px; gap: 16px; }
+.form-panel { padding: 18px; border-radius: 14px; background: linear-gradient(135deg, #fcfaf4 0%, #f7f0e2 100%); border: 1px solid #ece4d3; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-panel label { display: block; font-weight: 700; color: #314a48; font-size: 13px; }
+.form-panel input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #e1d8c7; background: #fff; }
+.upload-box { display: grid; place-items: center; gap: 6px; padding: 18px; border: 2px dashed #e1d8c7; border-radius: 12px; color: #7c8a85; text-align: center; }
+.right-panel { display: flex; flex-direction: column; gap: 8px; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
+.add-student-page .submit-button { padding: 10px 14px; border-radius: 12px; }
+.add-student-page .text-button { padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; }
+
+@media (max-width: 980px) {
+	.add-student-grid { grid-template-columns: 1fr; }
+}

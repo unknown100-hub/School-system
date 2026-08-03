@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
-import Dashboard from './components/dashboard';
+import Dashboard from './pages/dashboard';
 import api from './components/api';
 import './App.css';
 
 const DEMO_ACCESS_CODE = 'KH-ADMIN-04';
 const seededStaff = [
-  { id: 1, name: 'George Kamau', email: 'admin01@gmail.com', role: 'admin' },
+  { id: 1, name: 'Admin', email: 'admin01@gmail.com', role: 'admin' },
 
 ];
 
 const demoAccounts = [
-  { email: 'admin01@gmail.com', password: 'Admin#2026', role: 'admin', name: 'George Kamau' },
+  { email: 'admin01@gmail.com', password: 'Admin#2026', role: 'admin', name: 'Admin' },
   { email: 'secretary@kestrellhill.edu', password: 'Secretary2026', role: 'secretary', name: 'Kestrell Hill Secretary' },
 ];
 
@@ -96,30 +96,46 @@ function Portal() {
     navigate(`/dashboard/${account.role}`);
   };
 
-  const addStudent = async (event) => {
-    event.preventDefault();
+  const addStudent = async (studentOrEvent) => {
+    const isEvent = studentOrEvent?.preventDefault;
+    if (isEvent) studentOrEvent.preventDefault();
 
-    if (!studentForm.name.trim() || !studentForm.class.trim() || !studentForm.admNumber.trim()) {
-      setStudentStatus({ type: 'denied', message: 'CHECK DETAILS' });
-      return;
+    const studentPayload = isEvent ? studentForm : studentOrEvent;
+    const name = studentPayload.name?.trim();
+    const studentClass = studentPayload.class?.trim();
+    const admNumber = studentPayload.admNumber?.trim();
+
+    if (!name || !studentClass || !admNumber) {
+      if (isEvent) setStudentStatus({ type: 'denied', message: 'CHECK DETAILS' });
+      throw new Error('CHECK DETAILS');
     }
 
     try {
       const response = await api.post('/api/dashboard/students', {
-        name: studentForm.name.trim(),
-        parentName: studentForm.parentName.trim(),
-        class: studentForm.class.trim(),
-        admNumber: studentForm.admNumber.trim(),
+        name,
+        parentName: studentPayload.parentName?.trim() || '',
+        class: studentClass,
+        admNumber,
       });
 
       const createdStudent = response.data.student;
       setStudents((currentStudents) => [createdStudent, ...currentStudents]);
       setStudentCount((currentCount) => (Number(currentCount) || 0) + 1);
-      setStudentForm(blankStudent);
-      setStudentStatus({ type: 'approved', message: 'STUDENT ADDED' });
+
+      if (isEvent) {
+        setStudentForm(blankStudent);
+        setStudentStatus({ type: 'approved', message: 'STUDENT ADDED' });
+        return;
+      }
+
+      return createdStudent;
     } catch (error) {
       console.error('Unable to add student:', error);
-      setStudentStatus({ type: 'denied', message: 'FAILED TO SAVE' });
+      if (isEvent) {
+        setStudentStatus({ type: 'denied', message: 'FAILED TO SAVE' });
+        return;
+      }
+      throw error;
     }
   };
 
@@ -190,7 +206,7 @@ function Portal() {
   };
 
   if (location.pathname.startsWith('/dashboard') && currentUser) {
-    return <Dashboard user={currentUser} staff={staff} studentCount={studentCount} students={students} onAddStudent={() => setModeAndClear('addStudent')} onRegister={() => setModeAndClear('register')} onSignOut={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }} />;
+    return <Dashboard user={currentUser} staff={staff} studentCount={studentCount} students={students} onAddStudent={addStudent} onRegister={() => setModeAndClear('register')} onSignOut={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }} />;
   }
 
   if (location.pathname === '/add-student' && currentUser) {
