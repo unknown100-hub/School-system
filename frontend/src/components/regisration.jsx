@@ -29,8 +29,7 @@ export default function Registration() {
             <select onChange={(e) => setForm({ ...form, role: e.target.value })}>
                 <option value="">Select Role</option>
                 <option value="admin">Admin</option>
-                <option value="teacher">Teacher</option>
-                <option value="student">Student</option>
+                <option value="secretary">Secretary</option>
             </select>
 
             <input placeholder="Name" onChange={(e) => setForm({ ...form, name: e.target.value })} />
