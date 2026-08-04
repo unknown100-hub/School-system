@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import StudentPanel from '../components/StudentPanel';
+import StudentPanel from '../components/students/StudentPanel';
 import SettingsPanel from '../components/SettingsPanel';
 
-export default function Dashboard({ students = [], studentCount = 0, onAddStudent }) {
+export default function Dashboard({ students = [], studentCount = 0, onAddStudent, onUpdateStudent, onDeleteStudent }) {
   const [activeTab, setActiveTab] = useState('Students');
 
   return (
@@ -25,6 +25,8 @@ export default function Dashboard({ students = [], studentCount = 0, onAddStuden
             students={students}
             studentCount={studentCount}
             onAddStudent={onAddStudent}
+            onUpdateStudent={onUpdateStudent}
+            onDeleteStudent={onDeleteStudent}
           />
         )}
 

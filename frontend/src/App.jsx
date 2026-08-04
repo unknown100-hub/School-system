@@ -54,7 +54,7 @@ function Portal() {
         ]);
 
         setStudentCount(countResponse.data.studentCount ?? 0);
-        setStudents(studentsResponse.data.students ?? []);
+        setStudents(studentsResponse.data.students ?? studentsResponse.data ?? []);
       } catch (error) {
         console.error('Unable to load the student data:', error);
         setStudentCount(0);
@@ -101,7 +101,10 @@ function Portal() {
     if (isEvent) studentOrEvent.preventDefault();
 
     const studentPayload = isEvent ? studentForm : studentOrEvent;
-    const name = studentPayload.name?.trim();
+    const firstName = studentPayload.First_Name?.trim() || '';
+    const middleName = studentPayload.Middle_Name?.trim() || '';
+    const lastName = studentPayload.Last_Name?.trim() || '';
+    const name = studentPayload.name?.trim() || [firstName, middleName, lastName].filter(Boolean).join(' ');
     const studentClass = studentPayload.class?.trim();
     const admNumber = studentPayload.admNumber?.trim();
 
@@ -113,6 +116,9 @@ function Portal() {
     try {
       const response = await api.post('/api/dashboard/students', {
         name,
+        First_Name: firstName,
+        Middle_Name: middleName,
+        Last_Name: lastName,
         parentName: studentPayload.parentName?.trim() || '',
         class: studentClass,
         admNumber,
@@ -137,6 +143,28 @@ function Portal() {
       }
       throw error;
     }
+  };
+
+  const updateStudent = async (admissionNumber, updates) => {
+    const response = await api.put(`/api/dashboard/students/${encodeURIComponent(admissionNumber)}`, updates);
+    const updatedStudent = response.data.student;
+
+    setStudents((currentStudents) => currentStudents.map((student) =>
+      String(student.Admission_Number ?? student.admNumber) === String(admissionNumber)
+        ? updatedStudent
+        : student
+    ));
+
+    return updatedStudent;
+  };
+
+  const deleteStudent = async (admissionNumber) => {
+    await api.delete(`/api/dashboard/students/${encodeURIComponent(admissionNumber)}`);
+
+    setStudents((currentStudents) => currentStudents.filter((student) =>
+      String(student.Admission_Number ?? student.admNumber) !== String(admissionNumber)
+    ));
+    setStudentCount((currentCount) => Math.max((Number(currentCount) || 1) - 1, 0));
   };
 
   const registerStaff = (event) => {
@@ -206,14 +234,14 @@ function Portal() {
   };
 
   if (location.pathname.startsWith('/dashboard') && currentUser) {
-    return <Dashboard user={currentUser} staff={staff} studentCount={studentCount} students={students} onAddStudent={addStudent} onRegister={() => setModeAndClear('register')} onSignOut={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }} />;
+    return <Dashboard user={currentUser} staff={staff} studentCount={studentCount} students={students} onAddStudent={addStudent} onUpdateStudent={updateStudent} onDeleteStudent={deleteStudent} onRegister={() => setModeAndClear('register')} onSignOut={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }} />;
   }
 
   if (location.pathname === '/add-student' && currentUser) {
     return (
       <main className="portal-shell">
         <section className="staff-roll" aria-label="Student entry guide">
-          <div className="school-mark" aria-hidden="true">GA</div>
+          <div className="school-mark" aria-hidden="true"><GA></GA></div>
           <p className="eyebrow">Green Angels Academy</p>
           <h1>Add Student</h1>
           <p className="ledger-note">Capture a new student record directly into the live database.</p>
@@ -248,7 +276,7 @@ function Portal() {
         <div className="school-mark" aria-hidden="true">GA</div>
         <p className="eyebrow">Green Angels  Academy</p>
         <h1>Staff Roll</h1>
-        <p className="ledger-note">Live demo ledger · resets on refresh</p>
+       
 
         <div className="staff-list">
           {staff.map((member, index) => (
@@ -301,7 +329,7 @@ function Portal() {
             </form>
           ) : mode === 'forgot' ? (
             <form className={passwordStatus?.type === 'denied' ? 'shake' : ''} onSubmit={requestReset}>
-              <label>Staff email<input value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} type="email" placeholder="you@kestrellhill.edu" required /></label>
+              <label>Staff email<input value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} type="email" placeholder="you@gmail.com" required /></label>
               <button className="submit-button" type="submit">Verify email <span>→</span></button>
               <Stamp status={passwordStatus} />
               <button className="text-button" type="button" onClick={() => setModeAndClear('login')}>Back to sign in</button>
@@ -316,7 +344,7 @@ function Portal() {
           )}
 
           <footer className="auth-footer">
-            {currentUser ? <><span className={`role-dot ${currentUser.role}`} /> Signed in as {currentUser.name} <button type="button" onClick={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }}>Sign out</button></> : 'Demo accounts are pre-seeded for testing.'}
+            {currentUser ? <><span className={`role-dot ${currentUser.role}`} /> Signed in as {currentUser.name} <button type="button" onClick={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }}>Sign out</button></> :''}
           </footer>
         </div>
     
