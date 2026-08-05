@@ -2,7 +2,7 @@ import { useState } from 'react';
 import StudentSearch from './studentSearch';
 import StudentTable from './studentTable';
 
-const blankStudent = { First_Name: '', Middle_Name: '', Last_Name: '', parentName: '', class: '', admNumber: '' };
+const blankStudent = { First_Name: '', Middle_Name: '', Last_Name: '', parentName: '', class: '', admNumber: '', Date_of_birth: '' };
 
 function getStudentDisplay(student) {
   const firstName = student.First_Name ?? '';
@@ -36,6 +36,7 @@ export default function StudentPanel({ students, studentCount, onAddStudent, onU
         parentName: form.parentName.trim(),
         class: form.class.trim(),
         admNumber: form.admNumber.trim(),
+        Date_of_birth: form.Date_of_birth.trim(),
       });
       setForm(blankStudent);
       setStatus({ type: 'approved', message: 'Student added successfully' });
@@ -53,7 +54,7 @@ export default function StudentPanel({ students, studentCount, onAddStudent, onU
         Middle_Name: updates.Middle_Name.trim(),
         Last_Name: updates.Last_Name.trim(),
         parent_guardian: updates.parent_guardian.trim(),
-        Date_of_birth: student.Date_of_birth ?? 0,
+        Date_of_birth: updates.Date_of_birth.trim(),
         class: updates.class.trim(),
       });
       setStatus({ type: 'approved', message: 'Student updated successfully' });
@@ -138,6 +139,10 @@ export default function StudentPanel({ students, studentCount, onAddStudent, onU
             <label>
               Admission number
               <input value={form.admNumber} onChange={(e) => setForm({ ...form, admNumber: e.target.value })} placeholder="ADM number" required />
+            </label>
+            <label>
+              D.O.B
+              <input value={form.Date_of_birth} onChange={(e) => setForm({ ...form, Date_of_birth: e.target.value })} placeholder="YYYY-MM-DD" required />
             </label>
           </div>
           <button className="dashboard-action" type="submit">Save student</button>

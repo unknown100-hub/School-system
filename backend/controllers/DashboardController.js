@@ -9,7 +9,7 @@ function normalizeStudentPayload(payload = {}) {
     lastName: String(payload.Last_Name || (nameParts.length > 1 ? nameParts[nameParts.length - 1] : '')).trim(),
     guardian: String(payload.parent_guardian || payload.parentName || '').trim(),
     className: String(payload.class || '').trim(),
-    dateOfBirth: Number(payload.Date_of_birth || 0),
+    dateOfBirth: String(payload.Date_of_birth || '').trim(),
     admissionNumber: String(payload.Admission_Number || payload.admNumber || '').trim(),
   };
 }

@@ -17,7 +17,7 @@ const demoAccounts = [
 
 const blankLogin = { email: '', password: '', role: '' };
 const blankRegistration = { name: '', email: '', password: '', role: '', accessCode: '' };
-const blankStudent = { name: '', parentName: '', class: '', admNumber: '' };
+const blankStudent = { name: '', parentName: '', class: '', admNumber: '', Date_of_birth: '' };
 
 function Stamp({ status }) {
   if (!status) return null;
@@ -122,6 +122,7 @@ function Portal() {
         parentName: studentPayload.parentName?.trim() || '',
         class: studentClass,
         admNumber,
+        Date_of_birth: studentPayload.Date_of_birth?.trim() || '',
       });
 
       const createdStudent = response.data.student;
@@ -260,6 +261,7 @@ function Portal() {
               <label>Parent / guardian<input value={studentForm.parentName} onChange={(e) => setStudentForm({ ...studentForm, parentName: e.target.value })} placeholder="Parent or guardian name" /></label>
               <label>Class<input value={studentForm.class} onChange={(e) => setStudentForm({ ...studentForm, class: e.target.value })} placeholder="e.g. Grade 5" required /></label>
               <label>Admission number<input value={studentForm.admNumber} onChange={(e) => setStudentForm({ ...studentForm, admNumber: e.target.value })} placeholder="ADM number" required /></label>
+              <label>D.O.B<input value={studentForm.Date_of_birth} onChange={(e) => setStudentForm({ ...studentForm, Date_of_birth: e.target.value })} placeholder="YYYY-MM-DD" required /></label>
               <button className="submit-button" type="submit">Save student <span>+</span></button>
               <Stamp status={studentStatus} />
               <button className="text-button" type="button" onClick={() => navigate('/dashboard/admin')}>Back to dashboard</button>

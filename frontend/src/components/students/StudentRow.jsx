@@ -64,6 +64,9 @@ export default function StudentRow({ student, onEditStudent, onDeleteStudent }) 
       <td>
         {isEditing ? <input className="student-table-input" value={editForm.class} onChange={(event) => updateEditForm('class', event.target.value)} /> : className}
       </td>
+      <td>
+        {isEditing ? <input className="student-table-input" value={editForm.Date_of_birth} onChange={(event) => updateEditForm('Date_of_birth', event.target.value)} /> : student.Date_of_birth}
+      </td>
 
       <td className="student-row-actions">
         {isEditing ? (
