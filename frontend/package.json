@@ -15,7 +15,10 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.84.0",
+<<<<<<< HEAD
     "react-icons": "^5.7.0",
+=======
+>>>>>>> 1e306443c2980a7937b2805b4105bec477224ffe
     "react-router-dom": "^7.11.0",
     "tailwindcss": "^4.3.3"
   },
