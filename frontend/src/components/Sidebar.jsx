@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
+
 const menuItems = ['Students', 'Finance', 'Settings'];
-=======
-const menuItems = ['Students', 'Settings'];
->>>>>>> 1e306443c2980a7937b2805b4105bec477224ffe
+
+
 
 export default function Sidebar({ activeTab, onTabChange }) {
   return (
