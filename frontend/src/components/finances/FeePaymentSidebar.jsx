@@ -47,19 +47,19 @@ export default function FeePaymentSidebar({ feeCode, feeType, colors, Icon, stud
   async function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit || !student || isLoading) return;
-    
+
     setIsLoading(true);
     const receipt_no = generateReceiptNo(feeCode, term, records.length + 1);
-    const payload = { 
-      receipt_no, 
-      student_id: student.Admission_Number, 
-      parent_name: student.parent_guardian, 
-      fee_code: feeCode, 
-      amount: Number(amount), 
-      payment_method: method, 
-      payment_date: date, 
-      term, 
-      remarks 
+    const payload = {
+      receipt_no,
+      student_id: student.Admission_Number,
+      parent_name: student.parent_guardian,
+      fee_code: feeCode,
+      amount: Number(amount),
+      payment_method: method,
+      payment_date: date,
+      term,
+      remarks
     };
 
     try {
@@ -136,8 +136,6 @@ export default function FeePaymentSidebar({ feeCode, feeType, colors, Icon, stud
 
       <main className="flex-1 overflow-y-auto px-8 py-6">
         <h2 className="text-lg font-medium text-gray-900 mb-1">Recent {feeType.label.toLowerCase()} payments</h2>
-        <p className="text-sm text-gray-500 mb-5">Recorded in this session — this prototype uses in-memory data, not a live database.</p>
-
         {records.length === 0 ? (
           <div className="border border-dashed border-gray-300 rounded-lg py-16 text-center text-sm text-gray-400">
             No payments recorded yet. Use the form to add one.

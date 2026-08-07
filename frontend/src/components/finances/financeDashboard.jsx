@@ -3,11 +3,7 @@ import { GraduationCap, Bus, FileEdit, BookOpen, Home } from "lucide-react";
 import FeePaymentSidebar from "./FeePaymentSidebar";
 
 const FEE_TYPES = {
-  TUI: { label: "Tuition fee", icon: GraduationCap, color: "emerald" },
-  TRN: { label: "Transport fee", icon: Bus, color: "blue" },
-  EXM: { label: "Examination fee", icon: FileEdit, color: "amber" },
-  LIB: { label: "Library fee", icon: BookOpen, color: "purple" },
-  BRD: { label: "Boarding fee", icon: Home, color: "rose" },
+  TUI: { label: "Tuition fee", icon: GraduationCap, color: "emerald" }
 };
 
 const COLOR_CLASSES = {

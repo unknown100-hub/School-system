@@ -67,6 +67,19 @@ export default function StudentRow({ student, onEditStudent, onDeleteStudent }) 
       <td>
         {isEditing ? <input className="student-table-input" value={editForm.Date_of_birth} onChange={(event) => updateEditForm('Date_of_birth', event.target.value)} /> : student.Date_of_birth}
       </td>
+      <td>
+        {isEditing ? (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleSave} style={{ color: 'green', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>Save</button>
+            <button onClick={handleCancel} style={{ color: 'gray', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>Cancel</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setIsEditing(true)} style={{ color: 'blue', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>Edit</button>
+            <button onClick={() => onDeleteStudent(student)} style={{ color: 'red', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>Delete</button>
+          </div>
+        )}
+      </td>
     </tr>
   );
 }
