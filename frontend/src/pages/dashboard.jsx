@@ -2,8 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import StudentPanel from '../components/students/StudentPanel';
 import SettingsPanel from '../components/SettingsPanel';
-
-
+import FinanceDashboard from '../components/finances/financeDashboard';
 
 export default function Dashboard({ students = [], studentCount = 0, onAddStudent, onUpdateStudent, onDeleteStudent }) {
   const [activeTab, setActiveTab] = useState('Students');
@@ -35,6 +34,7 @@ export default function Dashboard({ students = [], studentCount = 0, onAddStuden
         )}
 
         {activeTab === 'Settings' && <SettingsPanel />}
+        {activeTab === 'Finance' && <FinanceDashboard students={students} />}
       </section>
     </div>
 

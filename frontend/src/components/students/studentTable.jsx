@@ -12,7 +12,7 @@ export default function StudentTable({students, onEditStudent, onDeleteStudent})
                     <th>Last name</th>
                     <th>Parent/Guardian</th>
                     <th>Class</th>
-                    <th>Actions</th>
+                    <th>Date of birth</th>
                 </tr>
             </thead>
             <tbody>
