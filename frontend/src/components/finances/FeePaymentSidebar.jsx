@@ -134,38 +134,40 @@ export default function FeePaymentSidebar({ feeCode, feeType, colors, Icon, stud
         </form>
       </aside>
 
-      <main className="flex-1 overflow-y-auto px-8 py-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-1">Recent {feeType.label.toLowerCase()} payments</h2>
+      <main className="flex-1 flex flex-col px-8 py-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-4 text-center">Recent {feeType.label.toLowerCase()} payments</h2>
         {records.length === 0 ? (
-          <div className="border border-dashed border-gray-300 rounded-lg py-16 text-center text-sm text-gray-400">
+          <div className="flex-1 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-sm text-gray-400">
             No payments recorded yet. Use the form to add one.
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  <th className="px-4 py-2.5">Receipt</th>
-                  <th className="px-4 py-2.5">Student</th>
-                  <th className="px-4 py-2.5">Term</th>
-                  <th className="px-4 py-2.5">Method</th>
-                  <th className="px-4 py-2.5">Date</th>
-                  <th className="px-4 py-2.5 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((r) => (
-                  <tr key={r.receipt_no} className="border-t border-gray-100">
-                    <td className={`px-4 py-2.5 font-medium ${colors.text}`}>{r.receipt_no}</td>
-                    <td className="px-4 py-2.5 text-gray-900">{r.student_name}</td>
-                    <td className="px-4 py-2.5 text-gray-600">{r.term}</td>
-                    <td className="px-4 py-2.5 text-gray-600">{r.payment_method}</td>
-                    <td className="px-4 py-2.5 text-gray-600">{new Date(r.payment_date).toISOString().slice(0, 10)}</td>
-                    <td className="px-4 py-2.5 text-right text-gray-900 font-medium">KES {Number(r.amount).toLocaleString()}</td>
+          <div className="flex-1 bg-white rounded-lg overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <table className="w-full text-sm table-fixed finance-table">
+                <thead className="sticky top-0 bg-gray-50 z-10 shadow-sm">
+                  <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="px-6 py-4">Receipt</th>
+                    <th className="px-6 py-4">Student</th>
+                    <th className="px-6 py-4">Term</th>
+                    <th className="px-6 py-4">Method</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4 text-right">Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {records.map((r) => (
+                    <tr key={r.receipt_no} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className={`px-6 py-4 font-medium ${colors.text} truncate`}>{r.receipt_no}</td>
+                      <td className="px-6 py-4 text-gray-900 truncate">{r.student_name}</td>
+                      <td className="px-6 py-4 text-gray-600 truncate">{r.term}</td>
+                      <td className="px-6 py-4 text-gray-600 truncate">{r.payment_method}</td>
+                      <td className="px-6 py-4 text-gray-600 truncate">{new Date(r.payment_date).toISOString().slice(0, 10)}</td>
+                      <td className="px-6 py-4 text-right text-gray-900 font-medium truncate">KES {Number(r.amount).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>
