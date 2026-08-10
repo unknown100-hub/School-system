@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import StudentPanel from '../components/students/StudentPanel';
 import SettingsPanel from '../components/settings/SettingsPanel';
 import FinanceDashboard from '../components/finances/financeDashboard';
+import LogOut from '../components/logout';
 
 export default function Dashboard({ students = [], studentCount = 0, onAddStudent, onUpdateStudent, onDeleteStudent }) {
   const [activeTab, setActiveTab] = useState('Students');

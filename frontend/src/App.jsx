@@ -278,7 +278,7 @@ function Portal() {
         <div className="school-mark" aria-hidden="true">GA</div>
         <p className="eyebrow">Green Angels  Academy</p>
         <h1>Staff Roll</h1>
-       
+
 
         <div className="staff-list">
           {staff.map((member, index) => (
@@ -299,7 +299,7 @@ function Portal() {
           <header className="auth-header">
             <p className="eyebrow">Secure staff portal</p>
             <h2>{mode === 'login' ? 'Sign In' : mode === 'register' ? 'Register Staff' : mode === 'forgot' ? 'Reset Password' : 'Choose a Password'}</h2>
-            <p>{mode === 'login' ? 'Use a seeded account to enter the demo.' : mode === 'register' ? 'Add an Admin or Secretary to the staff roll.' : mode === 'forgot' ? 'Enter your staff email to verify your reset request.' : `Updating password for ${resetEmail}.`}</p>
+            <p>{mode === 'login' ? '' : mode === 'register' ? 'Add an Admin or Secretary to the staff roll.' : mode === 'forgot' ? 'Enter your staff email to verify your reset request.' : `Updating password for ${resetEmail}.`}</p>
           </header>
 
           <div className="mode-switch" role="tablist" aria-label="Authentication mode">
@@ -309,7 +309,7 @@ function Portal() {
 
           {mode === 'login' ? (
             <form className={loginStatus?.type === 'denied' ? 'shake' : ''} onSubmit={signIn}>
-              <label>Email<input value={login.email} onChange={(e) => setLogin({ ...login, email: e.target.value })} type="email" placeholder="you@kestrellhill.edu" required /></label>
+              <label>Email<input value={login.email} onChange={(e) => setLogin({ ...login, email: e.target.value })} type="email" placeholder="you@gmail.com" required /></label>
               <label>Password<input value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} type="password" placeholder="Your password" required /></label>
               <label>Role<select value={login.role} onChange={(e) => setLogin({ ...login, role: e.target.value })} required><option value="">Choose your role</option><option value="admin">Admin</option><option value="secretary">Secretary</option></select></label>
               <button className="submit-button" type="submit">Sign in securely <span>→</span></button>
@@ -322,7 +322,7 @@ function Portal() {
                 {currentUser?.role === 'admin' ? 'Admin session verified — registration unlocked.' : 'Admin sign-in required before registering staff.'}
               </div>
               <label>Full name<input value={registration.name} onChange={(e) => setRegistration({ ...registration, name: e.target.value })} placeholder="Staff member name" required /></label>
-              <label>Email<input value={registration.email} onChange={(e) => setRegistration({ ...registration, email: e.target.value })} type="email" placeholder="staff@kestrellhill.edu" required /></label>
+              <label>Email<input value={registration.email} onChange={(e) => setRegistration({ ...registration, email: e.target.value })} type="email" placeholder="staff@gmail.com" required /></label>
               <label>Password<input value={registration.password} onChange={(e) => setRegistration({ ...registration, password: e.target.value })} type="password" placeholder="Create a password" required /></label>
               <label>Role<select value={registration.role} onChange={(e) => setRegistration({ ...registration, role: e.target.value })} required><option value="">Choose staff role</option><option value="admin">Admin</option><option value="secretary">Secretary</option></select></label>
               <label>Demo access code<input value={registration.accessCode} onChange={(e) => setRegistration({ ...registration, accessCode: e.target.value })} placeholder="KH-ADMIN-04" required /></label>
@@ -346,10 +346,10 @@ function Portal() {
           )}
 
           <footer className="auth-footer">
-            {currentUser ? <><span className={`role-dot ${currentUser.role}`} /> Signed in as {currentUser.name} <button type="button" onClick={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }}>Sign out</button></> :''}
+            {currentUser ? <><span className={`role-dot ${currentUser.role}`} /> Signed in as {currentUser.name} <button type="button" onClick={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }}>Sign out</button></> : ''}
           </footer>
         </div>
-    
+
       </section>
     </main>
   );

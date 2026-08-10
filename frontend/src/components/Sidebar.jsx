@@ -1,6 +1,6 @@
 
 
-const menuItems = ['Students', 'Finance', 'Settings'];
+const menuItems = ['Students', 'Finance', 'Settings', 'log out'];
 
 
 
