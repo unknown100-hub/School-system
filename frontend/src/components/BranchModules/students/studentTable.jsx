@@ -1,6 +1,6 @@
-import StudentRow from "../students/StudentRow";
+import StudentRow from "./StudentRow";
 
-export default function StudentTable({students, onEditStudent, onDeleteStudent}) {
+export default function StudentTable({ students, onEditStudent, onDeleteStudent }) {
     return (
         <table className="student-table">
             <thead>
@@ -13,6 +13,7 @@ export default function StudentTable({students, onEditStudent, onDeleteStudent})
                     <th>Parent/Guardian</th>
                     <th>Class</th>
                     <th>Date of birth</th>
+                    <th>Branch</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -25,7 +26,7 @@ export default function StudentTable({students, onEditStudent, onDeleteStudent})
                         onDeleteStudent={onDeleteStudent}
                     />
                 ))}
-            </tbody>    
+            </tbody>
         </table>
     );
 }

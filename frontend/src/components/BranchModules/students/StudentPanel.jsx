@@ -18,7 +18,7 @@ function getStudentDisplay(student) {
   };
 }
 
-export default function StudentPanel({ students, studentCount, onAddStudent, onUpdateStudent, onDeleteStudent }) {
+export default function StudentPanel({ branchName, students, studentCount, onAddStudent, onUpdateStudent, onDeleteStudent }) {
   const [form, setForm] = useState(blankStudent);
   const [status, setStatus] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -37,6 +37,7 @@ export default function StudentPanel({ students, studentCount, onAddStudent, onU
         class: form.class.trim(),
         admNumber: form.admNumber.trim(),
         Date_of_birth: form.Date_of_birth.trim(),
+        branch: branchName,
       });
       setForm(blankStudent);
       setStatus({ type: 'approved', message: 'Student added successfully' });
@@ -97,7 +98,7 @@ export default function StudentPanel({ students, studentCount, onAddStudent, onU
     <div className="dashboard-panel">
       <div className="panel-head">
         <div>
-          <p className="eyebrow">Students</p>
+          <p className="eyebrow">{branchName || 'Students'}</p>
           <h3>Student roster</h3>
         </div>
         <button className="dashboard-action" type="button" onClick={() => setIsAdding((value) => !value)}>
@@ -142,7 +143,11 @@ export default function StudentPanel({ students, studentCount, onAddStudent, onU
             </label>
             <label>
               D.O.B
-              <input value={form.Date_of_birth} onChange={(e) => setForm({ ...form, Date_of_birth: e.target.value })} placeholder="YYYY-MM-DD" required />
+              <input value={form.Date_of_birth} onChange={(e) => setForm({ ...form, Date_of_birth: e.target.value })} placeholder="YYYY-MM-DD" />
+            </label>
+            <label>
+              Branch
+              <input value={branchName || 'Githurai Branch'} disabled style={{ background: '#f8fafc', color: '#64748b' }} />
             </label>
           </div>
           <button className="dashboard-action" type="submit">Save student</button>

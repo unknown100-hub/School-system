@@ -15,6 +15,7 @@ export default function StudentRow({ student, onEditStudent, onDeleteStudent }) 
     Last_Name: lastName === '—' ? '' : lastName,
     parent_guardian: guardian === '—' ? '' : guardian,
     class: className === '—' ? '' : className,
+    Date_of_birth: student.Date_of_birth ? String(student.Date_of_birth).split('T')[0] : '',
   });
 
   const updateEditForm = (field, value) => {
@@ -33,6 +34,7 @@ export default function StudentRow({ student, onEditStudent, onDeleteStudent }) 
       Last_Name: lastName === '—' ? '' : lastName,
       parent_guardian: guardian === '—' ? '' : guardian,
       class: className === '—' ? '' : className,
+      Date_of_birth: student.Date_of_birth ? String(student.Date_of_birth).split('T')[0] : '',
     });
     setIsEditing(false);
   };
@@ -65,7 +67,10 @@ export default function StudentRow({ student, onEditStudent, onDeleteStudent }) 
         {isEditing ? <input className="student-table-input" value={editForm.class} onChange={(event) => updateEditForm('class', event.target.value)} /> : className}
       </td>
       <td>
-        {isEditing ? <input className="student-table-input" value={editForm.Date_of_birth} onChange={(event) => updateEditForm('Date_of_birth', event.target.value)} /> : student.Date_of_birth}
+        {isEditing ? <input type="date" className="student-table-input" value={editForm.Date_of_birth} onChange={(event) => updateEditForm('Date_of_birth', event.target.value)} /> : (student.Date_of_birth ? String(student.Date_of_birth).split('T')[0] : '—')}
+      </td>
+      <td>
+        {student.branch || 'Githurai Branch'}
       </td>
       <td>
         {isEditing ? (

@@ -14,7 +14,7 @@ const COLOR_CLASSES = {
   rose: { text: "text-rose-700", bg: "bg-rose-700", bgHover: "hover:bg-rose-800", ring: "focus:ring-rose-600 focus:border-rose-600", dot: "text-rose-600" },
 };
 
-export default function FinanceDashboard({ students }) {
+export default function FinanceDashboard({ students, branchName }) {
   const feeCodes = Object.keys(FEE_TYPES);
   const [feeCode, setFeeCode] = useState(feeCodes[0]);
   const feeType = FEE_TYPES[feeCode] ?? FEE_TYPES.TUI;
@@ -39,7 +39,7 @@ export default function FinanceDashboard({ students }) {
         })}
       </div>
       <div className="flex-1 overflow-hidden h-full">
-        <FeePaymentSidebar feeCode={feeCode} feeType={feeType} colors={colors} Icon={Icon} students={students} />
+        <FeePaymentSidebar feeCode={feeCode} feeType={feeType} colors={colors} Icon={Icon} students={students} branchName={branchName} />
       </div>
     </div>
   );

@@ -3,20 +3,21 @@ import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
 import Dashboard from './pages/dashboard';
 import api from './components/api';
 import './App.css';
+import { branches } from './components/Sidebar';
 
 const DEMO_ACCESS_CODE = 'KH-ADMIN-04';
 const seededStaff = [
-  { id: 1, name: 'Admin', email: 'admin01@gmail.com', role: 'admin' },
+  { id: 1, name: 'Admin', email: 'admin01@gmail.com', role: 'admin', branch: 'All' },
 
 ];
 
 const demoAccounts = [
-  { email: 'admin01@gmail.com', password: 'Admin#2026', role: 'admin', name: 'Admin' },
-  { email: 'secretary@kestrellhill.edu', password: 'Secretary2026', role: 'secretary', name: 'Kestrell Hill Secretary' },
+  { email: 'admin01@gmail.com', password: 'Admin#2026', role: 'admin', name: 'Admin', branch: 'All' },
+  { email: 'secretary@kestrellhill.edu', password: 'Secretary2026', role: 'secretary', name: 'Kestrell Hill Secretary', branch: 'Githurai Branch' },
 ];
 
 const blankLogin = { email: '', password: '', role: '' };
-const blankRegistration = { name: '', email: '', password: '', role: '', accessCode: '' };
+const blankRegistration = { name: '', email: '', password: '', role: '', accessCode: '', branch: '' };
 const blankStudent = { name: '', parentName: '', class: '', admNumber: '', Date_of_birth: '' };
 
 function Stamp({ status }) {
@@ -80,8 +81,16 @@ function Portal() {
 
   const signIn = (event) => {
     event.preventDefault();
+    const emailStr = login.email.trim().toLowerCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailStr)) {
+      setLoginStatus({ type: 'denied', message: 'INVALID EMAIL' });
+      return;
+    }
+
     const account = accounts.find((candidate) =>
-      candidate.email === login.email.trim().toLowerCase()
+      candidate.email === emailStr
       && candidate.password === login.password
       && candidate.role === login.role,
     );
@@ -123,6 +132,7 @@ function Portal() {
         class: studentClass,
         admNumber,
         Date_of_birth: studentPayload.Date_of_birth?.trim() || '',
+        branch: studentPayload.branch || 'Githurai Branch',
       });
 
       const createdStudent = response.data.student;
@@ -160,7 +170,9 @@ function Portal() {
   };
 
   const deleteStudent = async (admissionNumber) => {
-    await api.delete(`/api/dashboard/students/${encodeURIComponent(admissionNumber)}`);
+    const student = students.find((s) => String(s.Admission_Number ?? s.admNumber) === String(admissionNumber));
+    const branchQuery = student ? `?branch=${encodeURIComponent(student.branch || 'Githurai Branch')}` : '';
+    await api.delete(`/api/dashboard/students/${encodeURIComponent(admissionNumber)}${branchQuery}`);
 
     setStudents((currentStudents) => currentStudents.filter((student) =>
       String(student.Admission_Number ?? student.admNumber) !== String(admissionNumber)
@@ -171,6 +183,12 @@ function Portal() {
   const registerStaff = (event) => {
     event.preventDefault();
     const email = registration.email.trim().toLowerCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setRegistrationStatus({ type: 'denied', message: 'INVALID EMAIL' });
+      return;
+    }
 
     if (currentUser?.role !== 'admin' || registration.accessCode !== DEMO_ACCESS_CODE) {
       setRegistrationStatus({ type: 'denied', message: 'DENIED' });
@@ -187,12 +205,14 @@ function Portal() {
       name: registration.name.trim(),
       email,
       role: registration.role,
+      branch: registration.role === 'admin' ? 'All' : registration.branch,
     }]);
     setAccounts((currentAccounts) => [...currentAccounts, {
       email,
       password: registration.password,
       role: registration.role,
       name: registration.name.trim(),
+      branch: registration.role === 'admin' ? 'All' : registration.branch,
     }]);
     setRegistration(blankRegistration);
     setRegistrationStatus({ type: 'approved', message: 'STAFF ADDED' });
@@ -261,7 +281,7 @@ function Portal() {
               <label>Parent / guardian<input value={studentForm.parentName} onChange={(e) => setStudentForm({ ...studentForm, parentName: e.target.value })} placeholder="Parent or guardian name" /></label>
               <label>Class<input value={studentForm.class} onChange={(e) => setStudentForm({ ...studentForm, class: e.target.value })} placeholder="e.g. Grade 5" required /></label>
               <label>Admission number<input value={studentForm.admNumber} onChange={(e) => setStudentForm({ ...studentForm, admNumber: e.target.value })} placeholder="ADM number" required /></label>
-              <label>D.O.B<input value={studentForm.Date_of_birth} onChange={(e) => setStudentForm({ ...studentForm, Date_of_birth: e.target.value })} placeholder="YYYY-MM-DD" required /></label>
+              <label>D.O.B<input value={studentForm.Date_of_birth} onChange={(e) => setStudentForm({ ...studentForm, Date_of_birth: e.target.value })} placeholder="YYYY-MM-DD" /></label>
               <button className="submit-button" type="submit">Save student <span>+</span></button>
               <Stamp status={studentStatus} />
               <button className="text-button" type="button" onClick={() => navigate('/dashboard/admin')}>Back to dashboard</button>
@@ -325,7 +345,15 @@ function Portal() {
               <label>Email<input value={registration.email} onChange={(e) => setRegistration({ ...registration, email: e.target.value })} type="email" placeholder="staff@gmail.com" required /></label>
               <label>Password<input value={registration.password} onChange={(e) => setRegistration({ ...registration, password: e.target.value })} type="password" placeholder="Create a password" required /></label>
               <label>Role<select value={registration.role} onChange={(e) => setRegistration({ ...registration, role: e.target.value })} required><option value="">Choose staff role</option><option value="admin">Admin</option><option value="secretary">Secretary</option></select></label>
-              <label>Demo access code<input value={registration.accessCode} onChange={(e) => setRegistration({ ...registration, accessCode: e.target.value })} placeholder="KH-ADMIN-04" required /></label>
+              {registration.role === 'secretary' && (
+                <label>Branch
+                  <select value={registration.branch} onChange={(e) => setRegistration({ ...registration, branch: e.target.value })} required>
+                    <option value="">Select Branch</option>
+                    {branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+                  </select>
+                </label>
+              )}
+              <label>Demo access code<input value={registration.accessCode} onChange={(e) => setRegistration({ ...registration, accessCode: e.target.value })} placeholder="" required /></label>
               <button className="submit-button" type="submit">Add to staff roll <span>+</span></button>
               <Stamp status={registrationStatus} />
             </form>
