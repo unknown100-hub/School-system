@@ -37,8 +37,9 @@ async function getStudentCount(request, response) {
 }
 
 async function createStudent(request, response) {
-  const connection = await pool.getConnection();
+  let connection;
   try {
+    connection = await pool.getConnection();
     const { firstName, middleName, lastName, guardian, className, dateOfBirth, admissionNumber, branch } = normalizeStudentPayload(request.body);
 
     if (!firstName || !lastName || !className || !admissionNumber) {
@@ -87,14 +88,14 @@ async function createStudent(request, response) {
       },
     });
   } catch (error) {
-    await connection.rollback();
+    if (connection) await connection.rollback();
     console.error('Unable to create student:', error.message);
     if (error.code === 'ER_DUP_ENTRY') {
        return response.status(409).json({ message: 'Admission number already exists.' });
     }
     response.status(500).json({ message: 'Unable to save student.' });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 }
 
@@ -134,8 +135,9 @@ async function getStudents(request, response) {
 }
 
 async function updateStudent(request, response) {
-  const connection = await pool.getConnection();
+  let connection;
   try {
+    connection = await pool.getConnection();
     const currentAdmissionNumber = String(request.params.admissionNumber || '').trim();
     const { firstName, middleName, lastName, guardian, className, dateOfBirth, branch } = normalizeStudentPayload(request.body);
 
@@ -194,11 +196,11 @@ async function updateStudent(request, response) {
       },
     });
   } catch (error) {
-    await connection.rollback();
+    if (connection) await connection.rollback();
     console.error('Unable to update student:', error.message);
     response.status(500).json({ message: 'Unable to update student.' });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 }
 
