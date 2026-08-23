@@ -1,28 +1,15 @@
--- Disable foreign key checks to drop tables safely
+-- Disable foreign key checks temporarily
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Drop tables if they exist
-DROP TABLE IF EXISTS invoice_items;
-DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS invoices;
-DROP TABLE IF EXISTS fee_categories;
-DROP TABLE IF EXISTS student_enrollments;
-DROP TABLE IF EXISTS branches;
-DROP TABLE IF EXISTS students;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- 1. Branches (Top Level)
-CREATE TABLE branches (
+CREATE TABLE IF NOT EXISTS branches (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
 -- 3. Students (Core Details)
-CREATE TABLE students (
+CREATE TABLE IF NOT EXISTS students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     middle_name VARCHAR(255),
@@ -33,7 +20,7 @@ CREATE TABLE students (
 );
 
 -- 4. Student Enrollments (Links Student to Branch & Class)
-CREATE TABLE student_enrollments (
+CREATE TABLE IF NOT EXISTS student_enrollments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     branch_id INT NOT NULL,
@@ -45,15 +32,15 @@ CREATE TABLE student_enrollments (
 );
 
 -- 5. Fee Categories (Master list of fee types)
-CREATE TABLE fee_categories (
+CREATE TABLE IF NOT EXISTS fee_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'TUI', 'BUS'
-    name VARCHAR(255) NOT NULL,       -- e.g., 'Tuition Fee'
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
     default_amount DECIMAL(10,2)
 );
 
 -- 6. Invoices (Belongs to Student)
-CREATE TABLE invoices (
+CREATE TABLE IF NOT EXISTS invoices (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     invoice_date DATE NOT NULL,
@@ -64,7 +51,7 @@ CREATE TABLE invoices (
 );
 
 -- 7. Invoice Items (Belongs to Invoice, Links to Fee Category)
-CREATE TABLE invoice_items (
+CREATE TABLE IF NOT EXISTS invoice_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     invoice_id INT NOT NULL,
     fee_category_id INT NOT NULL,
@@ -74,7 +61,7 @@ CREATE TABLE invoice_items (
 );
 
 -- 8. Payments (Belongs to Student)
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     receipt_no VARCHAR(255) UNIQUE NOT NULL,
@@ -85,17 +72,19 @@ CREATE TABLE payments (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
--- Seed Data
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Seed Data (Uses IGNORE to avoid duplicating if already exists)
 
 -- Insert branches
-INSERT INTO branches (name) VALUES 
+INSERT IGNORE INTO branches (name) VALUES 
 ('Githurai Branch'),
 ('Umoja Branch'),
 ('Kirigiti Branch'),
 ('MugumoBranch');
 
 -- Insert Fee Categories
-INSERT INTO fee_categories (code, name, default_amount) VALUES
+INSERT IGNORE INTO fee_categories (code, name, default_amount) VALUES
 ('TUI', 'Tuition fee', 15000.00),
 ('BUS', 'Transport fee', 5000.00),
 ('BKG', 'Book fee', 2000.00);
