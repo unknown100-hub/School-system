@@ -34,14 +34,15 @@ async function getFees(request, response) {
     const [rows] = await pool.query(query, params);
     response.json({ fees: rows });
   } catch (error) {
-    console.error('Unable to retrieve fees:', error.message);
+    console.error('Unable to retrieve fees:', error);
     response.status(500).json({ fees: [], message: 'Unable to retrieve fees' });
   }
 }
 
 async function createFee(request, response) {
-  const connection = await pool.getConnection();
+  let connection;
   try {
+    connection = await pool.getConnection();
     const { receipt_no, student_id: admission_number, parent_name, fee_code, amount, payment_method, payment_date, term, remarks, branch } = request.body;
 
     if (!receipt_no || !admission_number || !amount || !payment_method || !payment_date) {
@@ -98,14 +99,14 @@ async function createFee(request, response) {
       },
     });
   } catch (error) {
-    await connection.rollback();
-    console.error('Unable to create fee record:', error.message);
+    if (connection) await connection.rollback();
+    console.error('Unable to create fee record:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return response.status(409).json({ message: 'Receipt number already exists.' });
     }
     response.status(500).json({ message: 'Unable to save fee record.' });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 }
 

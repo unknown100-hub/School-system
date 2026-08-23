@@ -31,7 +31,7 @@ async function getStudentCount(request, response) {
       response.json({ studentCount: rows[0].studentCount });
     }
   } catch (error) {
-    console.error('Unable to retrieve student count:', error.message);
+    console.error('Unable to retrieve student count:', error);
     response.status(200).json({ studentCount: 0, message: 'No student count available.' });
   }
 }
@@ -89,7 +89,7 @@ async function createStudent(request, response) {
     });
   } catch (error) {
     if (connection) await connection.rollback();
-    console.error('Unable to create student:', error.message);
+    console.error('Unable to create student:', error);
     if (error.code === 'ER_DUP_ENTRY') {
        return response.status(409).json({ message: 'Admission number already exists.' });
     }
@@ -129,7 +129,7 @@ async function getStudents(request, response) {
     const [rows] = await pool.query(query, params);
     response.json({ students: rows });
   } catch (error) {
-    console.error('Unable to retrieve student list:', error.message);
+    console.error('Unable to retrieve student list:', error);
     response.status(200).json({ students: [] });
   }
 }
@@ -197,7 +197,7 @@ async function updateStudent(request, response) {
     });
   } catch (error) {
     if (connection) await connection.rollback();
-    console.error('Unable to update student:', error.message);
+    console.error('Unable to update student:', error);
     response.status(500).json({ message: 'Unable to update student.' });
   } finally {
     if (connection) connection.release();
@@ -223,7 +223,7 @@ async function deleteStudent(request, response) {
 
     response.json({ message: 'Student deleted successfully.' });
   } catch (error) {
-    console.error('Unable to delete student:', error.message);
+    console.error('Unable to delete student:', error);
     response.status(500).json({ message: 'Unable to delete student.' });
   }
 }
