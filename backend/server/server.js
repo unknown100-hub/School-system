@@ -22,6 +22,15 @@ app.get('/api/finance/fees', getFees);
 app.post('/api/finance/fees', createFee);
 
 const PORT = process.env.PORT || 5000;
+const path = require('path');
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
