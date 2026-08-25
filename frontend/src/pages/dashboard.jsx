@@ -2,13 +2,15 @@ import { useState } from 'react';
 import Sidebar, { branches } from '../components/Sidebar';
 import StudentPanel from '../components/BranchModules/students/StudentPanel';
 import SettingsPanel from '../components/settings/SettingsPanel';
-import FinanceDashboard from '../components/BranchModules/finances/financeDashboard';
 import LogOut from '../components/logout';
+import AdminFinance from './AdminFinance';
+import FinanceDashboard from '../components/BranchModules/finances/financeDashboard';
 export default function Dashboard({ user, staff = [], students = [], studentCount = 0, onAddStudent, onUpdateStudent, onDeleteStudent, onSignOut }) {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profileRole, setProfileRole] = useState(user?.role || '');
+  const [financeView, setFinanceView] = useState('overview');
 
   const visibleBranches = user?.role === 'admin' 
     ? branches 
@@ -183,7 +185,17 @@ export default function Dashboard({ user, staff = [], students = [], studentCoun
         {activeTab.endsWith('-Finance') && (() => {
           const branchName = activeTab.split('-')[0];
           const branchStudents = students.filter(s => (s.branch || 'Githurai Branch') === branchName);
-          return <FinanceDashboard students={branchStudents} branchName={branchName} />;
+          return (
+            <section className="branch-finance">
+              <div className="finance-view-switch" role="tablist" aria-label="Finance view">
+                <button type="button" role="tab" aria-selected={financeView === 'overview'} className={financeView === 'overview' ? 'active' : ''} onClick={() => setFinanceView('overview')}>Overview</button>
+                <button type="button" role="tab" aria-selected={financeView === 'collection'} className={financeView === 'collection' ? 'active' : ''} onClick={() => setFinanceView('collection')}>Fee collection</button>
+              </div>
+              {financeView === 'overview'
+                ? <AdminFinance branch={branchName} />
+                : <FinanceDashboard students={branchStudents} branchName={branchName} />}
+            </section>
+          );
         })()}
       </section>
     </div>

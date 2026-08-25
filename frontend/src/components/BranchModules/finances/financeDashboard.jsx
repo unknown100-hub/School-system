@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { GraduationCap, Bus, FileEdit, BookOpen, Home } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import FeePaymentSidebar from "./FeePaymentSidebar";
 
 const FEE_TYPES = {
-  TUI: { label: "Tuition fee", icon: GraduationCap, color: "emerald" }
+  TUI: { label: "Tuition fee", icon: GraduationCap, color: "emerald", defaultAmount: 15000 },
 };
 
 const COLOR_CLASSES = {
@@ -22,7 +22,7 @@ export default function FinanceDashboard({ students, branchName }) {
   const Icon = feeType.icon;
 
   return (
-    <div className="flex flex-col h-full flex-1 w-full bg-white">
+    <div className="finance-entry">
       <div className="border-b border-gray-200 bg-white px-6 flex items-center gap-1 shrink-0">
         {feeCodes.map((code) => {
           const type = FEE_TYPES[code];
@@ -38,7 +38,7 @@ export default function FinanceDashboard({ students, branchName }) {
           );
         })}
       </div>
-      <div className="flex-1 overflow-hidden h-full">
+      <div className="finance-entry-body">
         <FeePaymentSidebar feeCode={feeCode} feeType={feeType} colors={colors} Icon={Icon} students={students} branchName={branchName} />
       </div>
     </div>

@@ -5,7 +5,7 @@
   "scripts": {
     "install": "cd backend && npm install && cd ../frontend && npm install",
     "build": "cd frontend && npm run build",
-    "start": "cd backend && node config/setup_db.js && npm start",
+    "start": "cd backend && npm start",
     "setup-db": "node backend/config/setup_db.js"
   }
 }

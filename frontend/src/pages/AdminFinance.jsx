@@ -1,0 +1,6 @@
+import { useEffect, useState } from 'react';
+import SearchBar from '../components/SearchBar';
+import SummaryCards from '../components/SummaryCards';
+import PaymentTable from '../components/PaymentTable';
+import { financePayments, financeSummary } from '../services/financeApi';
+export default function AdminFinance({ branch }) { const [summary,setSummary]=useState(); const [payments,setPayments]=useState([]); const [search,setSearch]=useState(''); const [loading,setLoading]=useState(true); useEffect(()=>{ const timer=setTimeout(async()=>{ setLoading(true); try { const [a,b]=await Promise.all([financeSummary(branch),financePayments(branch,search)]); setSummary(a.data.summary); setPayments(b.data.payments); } finally { setLoading(false); } },250); return()=>clearTimeout(timer); },[branch,search]); return <section className="finance-page"><header className="finance-header"><div><p className="eyebrow">Finance</p><h2>{branch || 'All branches'} finance</h2><p>Collections and payment activity.</p></div><SearchBar value={search} onChange={setSearch}/></header><SummaryCards data={summary}/><div className="finance-panel"><h3>Recent payments</h3><PaymentTable payments={payments} loading={loading}/></div></section>; }

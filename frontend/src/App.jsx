@@ -1,41 +1,84 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { BrowserRouter, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import Dashboard from './pages/dashboard';
 import api from './components/api';
 import './App.css';
 import { branches } from './components/Sidebar';
 
-const DEMO_ACCESS_CODE = 'KH-ADMIN-04';
-const seededStaff = [
-  { id: 1, name: 'Admin', email: 'admin01@gmail.com', role: 'admin', branch: 'All' },
-
-];
-
-const demoAccounts = [
-  { email: 'admin01@gmail.com', password: 'Admin#2026', role: 'admin', name: 'Admin', branch: 'All' },
-  { email: 'secretary@kestrellhill.edu', password: 'Secretary2026', role: 'secretary', name: 'Kestrell Hill Secretary', branch: 'Githurai Branch' },
-];
-
-const blankLogin = { email: '', password: '', role: '' };
-const blankRegistration = { name: '', email: '', password: '', role: '', accessCode: '', branch: '' };
+const PERSISTENT_SESSION_KEY = 'school-system.persistent-session';
+const SESSION_KEY = 'school-system.session';
+const REMEMBERED_EMAIL_KEY = 'school-system.remembered-email';
+const blankLogin = { email: '', password: '', keepSignedIn: false };
+const blankRegistration = { name: '', email: '', password: '', role: '', branch: '' };
 const blankStudent = { name: '', parentName: '', class: '', admNumber: '', Date_of_birth: '' };
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_TYPOS = { 'gmial.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gmail.co': 'gmail.com', 'yaho.com': 'yahoo.com', 'hotmai.com': 'hotmail.com', 'outlok.com': 'outlook.com' };
+function loadSavedSession() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(PERSISTENT_SESSION_KEY)
+      || sessionStorage.getItem(SESSION_KEY)
+      || 'null'
+    );
+  } catch {
+    return null;
+  }
+}
+
+function loadRememberedEmail() {
+  try { return localStorage.getItem(REMEMBERED_EMAIL_KEY) || ''; } catch { return ''; }
+}
+
+function evaluateEmail(rawEmail) {
+  const email = rawEmail.trim().toLowerCase();
+  if (!email) return { state: 'empty' };
+  if (!EMAIL_REGEX.test(email)) return { state: 'invalid', message: 'Enter a valid email address.' };
+  const [name, domain] = email.split('@');
+  if (EMAIL_TYPOS[domain]) return { state: 'typo', suggestion: `${name}@${EMAIL_TYPOS[domain]}` };
+  return { state: 'ok' };
+}
+
+function evaluatePassword(password) {
+  const rules = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password),
+  };
+  return { rules, score: Object.values(rules).filter(Boolean).length };
+}
 
 function Stamp({ status }) {
   if (!status) return null;
   return <div className={`stamp ${status.type}`}>{status.message}</div>;
 }
 
+function PasswordInput({ value, onChange, placeholder, autoComplete, visible, onToggle, className = '' }) {
+  return (
+    <div className="password-input">
+      <input className={className} value={value} onChange={onChange} type={visible ? 'text' : 'password'} placeholder={placeholder} autoComplete={autoComplete} required />
+      <button type="button" onClick={onToggle} aria-label={visible ? 'Hide password' : 'Show password'}>
+        {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+      </button>
+    </div>
+  );
+}
+
 function Portal() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState('login');
-  const [staff, setStaff] = useState(seededStaff);
   const [studentCount, setStudentCount] = useState(null);
   const [students, setStudents] = useState([]);
-  const [accounts, setAccounts] = useState(demoAccounts);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [login, setLogin] = useState(blankLogin);
+  const [accounts, setAccounts] = useState([]);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedSession = loadSavedSession();
+    return savedSession?.user || null;
+  });
+  const [login, setLogin] = useState(() => ({ ...blankLogin, email: loadRememberedEmail(), keepSignedIn: Boolean(loadRememberedEmail()) }));
   const [registration, setRegistration] = useState(blankRegistration);
+  const [registrationConfirmPassword, setRegistrationConfirmPassword] = useState('');
   const [studentForm, setStudentForm] = useState(blankStudent);
   const [loginStatus, setLoginStatus] = useState(null);
   const [registrationStatus, setRegistrationStatus] = useState(null);
@@ -44,7 +87,26 @@ function Portal() {
   const [resetEmail, setResetEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegistrationPassword, setShowRegistrationPassword] = useState(false);
+  const [showRegistrationConfirmation, setShowRegistrationConfirmation] = useState(false);
   const [passwordStatus, setPasswordStatus] = useState(null);
+  const staff = useMemo(() => accounts.map((account, index) => ({
+    id: account.email || index,
+    name: account.name,
+    email: account.email,
+    role: account.role,
+    branch: account.branch,
+  })), [accounts]);
+  const loginEmailResult = evaluateEmail(login.email);
+  const registrationEmailResult = evaluateEmail(registration.email);
+  const registrationPassword = evaluatePassword(registration.password);
+  const passwordsMatch = registration.password === registrationConfirmPassword;
+
+  useEffect(() => {
+    const savedSession = loadSavedSession();
+    if (savedSession?.token) api.defaults.headers.common.Authorization = `Bearer ${savedSession.token}`;
+  }, []);
 
   useEffect(() => {
     const loadStudentData = async () => {
@@ -79,30 +141,37 @@ function Portal() {
     navigate(targetPath);
   };
 
-  const signIn = (event) => {
+  const signIn = async (event) => {
     event.preventDefault();
     const emailStr = login.email.trim().toLowerCase();
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailStr)) {
-      setLoginStatus({ type: 'denied', message: 'INVALID EMAIL' });
+    if (loginEmailResult.state !== 'ok') {
+      setLoginStatus({ type: 'denied', message: 'Enter a valid staff email.' });
       return;
     }
 
-    const account = accounts.find((candidate) =>
-      candidate.email === emailStr
-      && candidate.password === login.password
-      && candidate.role === login.role,
-    );
+    try {
+      const { data } = await api.post('/api/auth/login', { email: emailStr, password: login.password });
+      const session = JSON.stringify({ user: data.user, token: data.token });
+      api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+      if (login.keepSignedIn) { localStorage.setItem(PERSISTENT_SESSION_KEY, session); sessionStorage.removeItem(SESSION_KEY); }
+      else { sessionStorage.setItem(SESSION_KEY, session); localStorage.removeItem(PERSISTENT_SESSION_KEY); }
+      if (login.keepSignedIn) localStorage.setItem(REMEMBERED_EMAIL_KEY, emailStr);
+      else localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      setCurrentUser(data.user);
+      setLoginStatus({ type: 'approved', message: 'ACCESS GRANTED' });
+      navigate(`/dashboard/${data.user.role}`);
+    } catch (error) { setLoginStatus({ type: 'denied', message: error.response?.data?.message || 'Unable to sign in.' }); }
+  };
 
-    if (!account) {
-      setLoginStatus({ type: 'denied', message: 'DENIED' });
-      return;
-    }
-
-    setCurrentUser(account);
-    setLoginStatus({ type: 'approved', message: 'ACCESS GRANTED' });
-    navigate(`/dashboard/${account.role}`);
+  const signOut = () => {
+    localStorage.removeItem(PERSISTENT_SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    delete api.defaults.headers.common.Authorization;
+    setCurrentUser(null);
+    setLogin(blankLogin);
+    setLoginStatus(null);
+    navigate('/');
   };
 
   const addStudent = async (studentOrEvent) => {
@@ -180,89 +249,61 @@ function Portal() {
     setStudentCount((currentCount) => Math.max((Number(currentCount) || 1) - 1, 0));
   };
 
-  const registerStaff = (event) => {
+  const registerStaff = async (event) => {
     event.preventDefault();
     const email = registration.email.trim().toLowerCase();
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setRegistrationStatus({ type: 'denied', message: 'INVALID EMAIL' });
+    if (registrationEmailResult.state !== 'ok') {
+      setRegistrationStatus({ type: 'denied', message: 'Enter a valid email address.' });
       return;
     }
 
-    if (currentUser?.role !== 'admin' || registration.accessCode !== DEMO_ACCESS_CODE) {
-      setRegistrationStatus({ type: 'denied', message: 'DENIED' });
-      return;
-    }
-
-    if (!registration.name.trim() || !email || !registration.password || !registration.role || staff.some((member) => member.email === email)) {
+    if (!registration.name.trim() || !email || !registration.role || (registration.role === 'secretary' && !registration.branch) || registrationPassword.score < 4 || !passwordsMatch) {
       setRegistrationStatus({ type: 'denied', message: 'CHECK DETAILS' });
       return;
     }
 
-    setStaff((members) => [...members, {
-      id: Date.now(),
-      name: registration.name.trim(),
-      email,
-      role: registration.role,
-      branch: registration.role === 'admin' ? 'All' : registration.branch,
-    }]);
-    setAccounts((currentAccounts) => [...currentAccounts, {
-      email,
-      password: registration.password,
-      role: registration.role,
-      name: registration.name.trim(),
-      branch: registration.role === 'admin' ? 'All' : registration.branch,
-    }]);
-    setRegistration(blankRegistration);
-    setRegistrationStatus({ type: 'approved', message: 'STAFF ADDED' });
+    try {
+      const { data } = await api.post('/api/auth/register', { ...registration, email, password: registration.password });
+      setAccounts((currentAccounts) => [...currentAccounts, data.user]);
+      setRegistration(blankRegistration);
+      setRegistrationConfirmPassword('');
+      setRegistrationStatus({ type: 'approved', message: 'STAFF ADDED' });
+      if (!currentUser) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+        window.setTimeout(() => {
+          setRegistrationStatus(null);
+          setLogin({ ...blankLogin, email, keepSignedIn: true });
+          setMode('login');
+          navigate('/');
+        }, 900);
+      }
+    } catch (error) { setRegistrationStatus({ type: 'denied', message: error.response?.data?.message || 'Unable to register. Please try again.' }); }
   };
 
   const requestReset = (event) => {
     event.preventDefault();
-    const email = forgotEmail.trim().toLowerCase();
-    if (!accounts.some((account) => account.email === email)) {
-      setPasswordStatus({ type: 'denied', message: 'DENIED' });
-      return;
-    }
-    setResetEmail(email);
-    setPasswordStatus({ type: 'approved', message: 'EMAIL VERIFIED' });
-    window.setTimeout(() => {
-      setPasswordStatus(null);
-      setMode('reset');
-      navigate('/reset');
-    }, 700);
+    setPasswordStatus({ type: 'denied', message: 'PASSWORD RESET IS NOT AVAILABLE YET' });
   };
 
   const resetPassword = (event) => {
     event.preventDefault();
-    if (!newPassword || newPassword !== confirmPassword) {
-      setPasswordStatus({ type: 'denied', message: 'PASSWORDS DIFFER' });
-      return;
-    }
-    setAccounts((currentAccounts) => currentAccounts.map((account) =>
-      account.email === resetEmail ? { ...account, password: newPassword } : account,
-    ));
-    setLogin({ ...blankLogin, email: resetEmail });
-    setPasswordStatus({ type: 'approved', message: 'PASSWORD UPDATED' });
-    window.setTimeout(() => {
-      setPasswordStatus(null);
-      setNewPassword('');
-      setConfirmPassword('');
-      setMode('login');
-      navigate('/');
-    }, 850);
+    setPasswordStatus({ type: 'denied', message: 'PASSWORD RESET IS NOT AVAILABLE YET' });
   };
 
   if (location.pathname.startsWith('/dashboard') && currentUser) {
-    return <Dashboard user={currentUser} staff={staff} studentCount={studentCount} students={students} onAddStudent={addStudent} onUpdateStudent={updateStudent} onDeleteStudent={deleteStudent} onRegister={() => setModeAndClear('register')} onSignOut={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }} />;
+    return <Dashboard user={currentUser} staff={staff} studentCount={studentCount} students={students} onAddStudent={addStudent} onUpdateStudent={updateStudent} onDeleteStudent={deleteStudent} onRegister={() => setModeAndClear('register')} onSignOut={signOut} />;
+  }
+
+  if (location.pathname === '/' && currentUser) {
+    return <Navigate to={`/dashboard/${currentUser.role}`} replace />;
   }
 
   if (location.pathname === '/add-student' && currentUser) {
     return (
       <main className="portal-shell">
         <section className="staff-roll" aria-label="Student entry guide">
-          <div className="school-mark" aria-hidden="true"><GA></GA></div>
+          <div className="school-mark" aria-hidden="true">GA</div>
           <p className="eyebrow">Green Angels Academy</p>
           <h1>Add Student</h1>
           <p className="ledger-note">Capture a new student record directly into the live database.</p>
@@ -322,29 +363,38 @@ function Portal() {
             <p>{mode === 'login' ? '' : mode === 'register' ? 'Add an Admin or Secretary to the staff roll.' : mode === 'forgot' ? 'Enter your staff email to verify your reset request.' : `Updating password for ${resetEmail}.`}</p>
           </header>
 
-          <div className="mode-switch" role="tablist" aria-label="Authentication mode">
-            <button className={mode === 'login' || mode === 'forgot' || mode === 'reset' ? 'selected' : ''} onClick={() => setModeAndClear('login')} type="button">Sign In</button>
-            <button className={mode === 'register' ? 'selected' : ''} onClick={() => setModeAndClear('register')} type="button">Register Staff</button>
-          </div>
+          {currentUser?.role === 'admin' && (
+            <div className="mode-switch" role="tablist" aria-label="Authentication mode">
+              <button className={mode === 'login' || mode === 'forgot' || mode === 'reset' ? 'selected' : ''} onClick={() => setModeAndClear('login')} type="button">Sign In</button>
+              <button className={mode === 'register' ? 'selected' : ''} onClick={() => setModeAndClear('register')} type="button">Register Staff</button>
+            </div>
+          )}
 
           {mode === 'login' ? (
-            <form className={loginStatus?.type === 'denied' ? 'shake' : ''} onSubmit={signIn}>
-              <label>Email<input value={login.email} onChange={(e) => setLogin({ ...login, email: e.target.value })} type="email" placeholder="you@gmail.com" required /></label>
-              <label>Password<input value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} type="password" placeholder="Your password" required /></label>
-              <label>Role<select value={login.role} onChange={(e) => setLogin({ ...login, role: e.target.value })} required><option value="">Choose your role</option><option value="admin">Admin</option><option value="secretary">Secretary</option></select></label>
-              <button className="submit-button" type="submit">Sign in securely <span>→</span></button>
+            <form className={`social-login-form ${loginStatus?.type === 'denied' ? 'shake' : ''}`} onSubmit={signIn}>
+              <label>Email address<input value={login.email} onChange={(e) => setLogin({ ...login, email: e.target.value })} type="email" placeholder="staff email" list="staff-email-options" required /></label>
+              <datalist id="staff-email-options">{accounts.map((account) => <option key={account.email} value={account.email} />)}</datalist>
+              <label>Password<PasswordInput value={login.password} onChange={(e) => setLogin({ ...login, password: e.target.value })} placeholder="Your password" autoComplete="current-password" visible={showLoginPassword} onToggle={() => setShowLoginPassword((shown) => !shown)} /></label>
+              <div className="login-options">
+                <label className="keep-signed-in"><input checked={login.keepSignedIn} onChange={(e) => setLogin({ ...login, keepSignedIn: e.target.checked })} type="checkbox" />Remember me</label>
+                <button className="forgot-link" type="button" onClick={() => setModeAndClear('forgot')}>Forgot password?</button>
+              </div>
+              <button className="submit-button" type="submit">Sign in</button>
               <Stamp status={loginStatus} />
-              <button className="text-button" type="button" onClick={() => setModeAndClear('forgot')}>Forgot your password?</button>
+              <div className="social-signup">
+                <p>Not a member? <button type="button" onClick={() => setModeAndClear('register')}>Register</button></p>
+              </div>
             </form>
           ) : mode === 'register' ? (
-            <form className={registrationStatus?.type === 'denied' ? 'shake' : ''} onSubmit={registerStaff}>
-              <div className={`admin-gate ${currentUser?.role === 'admin' ? 'open' : ''}`}>
-                {currentUser?.role === 'admin' ? 'Admin session verified — registration unlocked.' : 'Admin sign-in required before registering staff.'}
-              </div>
-              <label>Full name<input value={registration.name} onChange={(e) => setRegistration({ ...registration, name: e.target.value })} placeholder="Staff member name" required /></label>
-              <label>Email<input value={registration.email} onChange={(e) => setRegistration({ ...registration, email: e.target.value })} type="email" placeholder="staff@gmail.com" required /></label>
-              <label>Password<input value={registration.password} onChange={(e) => setRegistration({ ...registration, password: e.target.value })} type="password" placeholder="Create a password" required /></label>
-              <label>Role<select value={registration.role} onChange={(e) => setRegistration({ ...registration, role: e.target.value })} required><option value="">Choose staff role</option><option value="admin">Admin</option><option value="secretary">Secretary</option></select></label>
+            <form className={`registration-form ${registrationStatus?.type === 'denied' ? 'shake' : ''}`} onSubmit={registerStaff}>
+              {currentUser?.role === 'admin' && <div className="admin-gate open">Signed in as an administrator.</div>}
+              <label>Full name<input value={registration.name} onChange={(e) => { setRegistration({ ...registration, name: e.target.value }); setRegistrationStatus(null); }} placeholder="Staff member name" autoComplete="name" required /></label>
+              <label>Email address<input value={registration.email} onChange={(e) => { setRegistration({ ...registration, email: e.target.value }); setRegistrationStatus(null); }} type="email" placeholder="staff@gmail.com" autoComplete="email" required /></label>
+              <label>Password<PasswordInput value={registration.password} onChange={(e) => { setRegistration({ ...registration, password: e.target.value }); setRegistrationStatus(null); }} placeholder="Create a password" autoComplete="new-password" visible={showRegistrationPassword} onToggle={() => setShowRegistrationPassword((shown) => !shown)} /></label>
+              <p className="password-hint">Use at least 8 characters, including uppercase letters, numbers, and symbols.</p>
+              <label>Confirm password<PasswordInput className={registrationConfirmPassword && !passwordsMatch ? 'invalid-input' : ''} value={registrationConfirmPassword} onChange={(e) => { setRegistrationConfirmPassword(e.target.value); setRegistrationStatus(null); }} placeholder="Re-enter password" autoComplete="new-password" visible={showRegistrationConfirmation} onToggle={() => setShowRegistrationConfirmation((shown) => !shown)} /></label>
+              {registrationConfirmPassword && !passwordsMatch && <p className="field-error">Passwords do not match.</p>}
+              <label>Role<select value={registration.role} onChange={(e) => { setRegistration({ ...registration, role: e.target.value, branch: '' }); setRegistrationStatus(null); }} required><option value="">Choose staff role</option><option value="admin">Admin</option><option value="secretary">Secretary</option></select></label>
               {registration.role === 'secretary' && (
                 <label>Branch
                   <select value={registration.branch} onChange={(e) => setRegistration({ ...registration, branch: e.target.value })} required>
@@ -353,9 +403,9 @@ function Portal() {
                   </select>
                 </label>
               )}
-              <label>Demo access code<input value={registration.accessCode} onChange={(e) => setRegistration({ ...registration, accessCode: e.target.value })} placeholder="" required /></label>
               <button className="submit-button" type="submit">Add to staff roll <span>+</span></button>
               <Stamp status={registrationStatus} />
+              {!currentUser && <button className="text-button" type="button" onClick={() => setModeAndClear('login')}>Already registered? Sign in</button>}
             </form>
           ) : mode === 'forgot' ? (
             <form className={passwordStatus?.type === 'denied' ? 'shake' : ''} onSubmit={requestReset}>
@@ -374,7 +424,7 @@ function Portal() {
           )}
 
           <footer className="auth-footer">
-            {currentUser ? <><span className={`role-dot ${currentUser.role}`} /> Signed in as {currentUser.name} <button type="button" onClick={() => { setCurrentUser(null); setLoginStatus(null); navigate('/'); }}>Sign out</button></> : ''}
+            {currentUser ? <><span className={`role-dot ${currentUser.role}`} /> Signed in as {currentUser.name} <button type="button" onClick={signOut}>Sign out</button></> : ''}
           </footer>
         </div>
 

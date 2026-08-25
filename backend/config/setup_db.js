@@ -35,6 +35,7 @@ async function setupDatabase() {
     console.log('✅ Database tables and seed data have been successfully deployed!');
   } catch (error) {
     console.error('❌ Failed to deploy database schema:', error);
+    process.exitCode = 1;
   } finally {
     if (connection) await connection.end();
   }
