@@ -18,7 +18,12 @@ async function register(request, response) {
     if (!name?.trim() || !normalizedEmail || !password || !['admin', 'secretary'].includes(role)) return response.status(400).json({ message: 'Please complete all required fields.' });
     if (role === 'secretary' && !branch.trim()) return response.status(400).json({ message: 'A branch is required for secretaries.' });
     if (await User.exists({ email: normalizedEmail })) return response.status(409).json({ message: 'An account with this email already exists.' });
-    if (role === 'admin' && await User.exists({}) && request.user?.role !== 'admin') return response.status(403).json({ message: 'An administrator must create additional admin accounts.' });
+    // The school has one owner account.  Once it exists, every subsequently
+    // created staff account must be a secretary; this is enforced on the
+    // server so it cannot be bypassed through the browser or API.
+    if (role === 'admin' && await User.exists({ role: 'admin' })) {
+      return response.status(409).json({ message: 'The administrator account already exists. Register staff as secretaries.' });
+    }
 
     const user = await User.create({ name: name.trim(), email: normalizedEmail, passwordHash: await bcrypt.hash(password, 12), role, branch: role === 'admin' ? 'All' : branch.trim() });
     return response.status(201).json({ user: publicUser(user) });
