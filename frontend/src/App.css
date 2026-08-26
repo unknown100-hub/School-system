@@ -345,6 +345,7 @@ body.dark .sidebar-card, body.dark .profile-card, body.dark .student-link {
 .fee-payment-records { min-width: 0; padding: 24px; overflow: hidden; }
 .fee-payment-records > div:last-of-type { min-width: 0; overflow-x: auto; }
 .finance-table { border-collapse: collapse; border: 1px solid #e5e7eb; }
+.receipt-print-button { padding:7px 10px; border:0; border-radius:8px; color:#fffdf4; background:#2f6b53; font-size:12px; font-weight:700; white-space:nowrap; }.receipt-print-button:hover { background:#245944; }
 .finance-table th, .finance-table td { border: 1px solid #e5e7eb; }
 
 @media (max-width: 600px) {
