@@ -207,16 +207,26 @@ async function createFee(request, response) {
 async function paybillValidation(request, response) {
   try {
     const reference = String(request.body.BillRefNumber || '').trim();
+    console.info('M-Pesa PayBill validation received.', { reference });
     if (!reference) {
+      console.warn('M-Pesa PayBill validation rejected: missing account reference.');
       return response.json(paybillResponse('C2B00012', 'Student name is required.'));
     }
     const result = await findEnrollmentByReference(pool, reference);
     if (!result.enrollment) {
+      console.warn('M-Pesa PayBill validation rejected: learner was not uniquely matched.', {
+        reference,
+        ambiguous: result.ambiguous
+      });
       return response.json(paybillResponse('C2B00012', result.ambiguous
         ? 'More than one student has this name. Use the admission number.'
         : 'Student name was not found.'));
     }
 
+    console.info('M-Pesa PayBill validation accepted.', {
+      reference,
+      studentId: result.enrollment.student_id
+    });
     response.json(paybillResponse(0, 'Accepted'));
   } catch (error) {
     console.error('Error validating M-Pesa PayBill transaction:', error);
@@ -237,6 +247,12 @@ async function paybillConfirmation(request, response) {
     const reference = String(transaction.BillRefNumber || '').trim();
     const amount = Number(transaction.TransAmount);
 
+    console.info('M-Pesa PayBill confirmation received.', {
+      transactionId,
+      reference,
+      amount
+    });
+
     if (!transactionId || !reference || !Number.isFinite(amount) || amount <= 0) {
       console.error('Invalid M-Pesa PayBill confirmation:', transaction);
       return response.json(paybillResponse('C2B00012', 'Invalid payment confirmation.'));
@@ -251,6 +267,7 @@ async function paybillConfirmation(request, response) {
     );
     if (existing.length) {
       await connection.commit();
+      console.info('M-Pesa PayBill confirmation ignored: transaction was already recorded.', { transactionId });
       return response.json(paybillResponse(0, 'Already received.'));
     }
 
@@ -284,6 +301,12 @@ async function paybillConfirmation(request, response) {
     );
 
     await connection.commit();
+    console.info('M-Pesa PayBill payment recorded.', {
+      transactionId,
+      reference,
+      studentId: enrollment.student_id,
+      amount
+    });
     response.json(paybillResponse(0, 'Payment recorded.'));
   } catch (error) {
     if (connection) await connection.rollback();
