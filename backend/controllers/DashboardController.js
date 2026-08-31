@@ -4,10 +4,10 @@ function normalizeStudentPayload(payload = {}) {
   const nameParts = String(payload.name || '').trim().split(/\s+/).filter(Boolean);
 
   return {
-    firstName: String(payload.First_Name || nameParts[0] || '').trim(),
-    middleName: String(payload.Middle_Name || (nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '')).trim(),
-    lastName: String(payload.Last_Name || (nameParts.length > 1 ? nameParts[nameParts.length - 1] : '')).trim(),
-    guardian: String(payload.parent_guardian || payload.parentName || '').trim(),
+    firstName: payload.First_Name !== undefined ? String(payload.First_Name).trim() : String(nameParts[0] || ''),
+    middleName: payload.Middle_Name !== undefined ? String(payload.Middle_Name).trim() : (nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : ''),
+    lastName: payload.Last_Name !== undefined ? String(payload.Last_Name).trim() : (nameParts.length > 1 ? nameParts[nameParts.length - 1] : ''),
+    guardian: String(payload.parent_guardian !== undefined ? payload.parent_guardian : (payload.parentName || '')).trim(),
     className: String(payload.class || '').trim(),
     dateOfBirth: String(payload.Date_of_birth || '').trim(),
     admissionNumber: String(payload.Admission_Number || payload.admNumber || '').trim(),
