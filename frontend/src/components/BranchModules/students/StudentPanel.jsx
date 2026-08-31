@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StudentSearch from './studentSearch';
 import StudentTable from './studentTable';
 
@@ -23,7 +23,8 @@ export default function StudentPanel({ branchName, students, studentCount, onAdd
   const [status, setStatus] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [search, setSearch] = useState('');
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus(null);
@@ -93,6 +94,16 @@ export default function StudentPanel({ branchName, students, studentCount, onAdd
 
     return haystack.includes(normalizedSearch);
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="dashboard-panel">
@@ -174,7 +185,54 @@ export default function StudentPanel({ branchName, students, studentCount, onAdd
             {search.trim() ? 'No students match your search.' : 'No students found yet.'}
           </div>
         ) : (
-          <StudentTable students={filteredStudents} onEditStudent={handleEditStudent} onDeleteStudent={handleDeleteStudent} />
+          <>
+            <StudentTable students={paginatedStudents} onEditStudent={handleEditStudent} onDeleteStudent={handleDeleteStudent} />
+            
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', padding: '0 8px' }}>
+                <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredStudents.length)} of {filteredStudents.length} entries
+                </span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '4px', background: currentPage === 1 ? '#f8fafc' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: currentPage === 1 ? '#94a3b8' : '#334155' }}
+                  >
+                    Previous
+                  </button>
+                  
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        style={{
+                          padding: '6px 12px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          background: currentPage === page ? '#3b82f6' : 'transparent',
+                          color: currentPage === page ? 'white' : '#475569',
+                          cursor: 'pointer',
+                          fontWeight: currentPage === page ? '600' : '400'
+                        }}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    style={{ padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: '4px', background: currentPage === totalPages ? '#f8fafc' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: currentPage === totalPages ? '#94a3b8' : '#334155' }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
