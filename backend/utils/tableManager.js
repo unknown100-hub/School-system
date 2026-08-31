@@ -12,7 +12,7 @@ async function ensureStudentsTableExists(branchSlug) {
       \`Admission_Number\` varchar(255) NOT NULL,
       \`First_Name\` varchar(255) NOT NULL,
       \`Middle_Name\` varchar(255) DEFAULT NULL,
-      \`Last_Name\` varchar(255) NOT NULL,
+      \`Last_Name\` varchar(255) DEFAULT NULL,
       \`parent_guardian\` varchar(255) DEFAULT NULL,
       \`Date_of_birth\` varchar(255) DEFAULT NULL,
       \`class\` varchar(255) NOT NULL,

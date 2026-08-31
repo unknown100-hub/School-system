@@ -42,8 +42,8 @@ async function createStudent(request, response) {
     connection = await pool.getConnection();
     const { firstName, middleName, lastName, guardian, className, dateOfBirth, admissionNumber, branch } = normalizeStudentPayload(request.body);
 
-    if (!firstName || !lastName || !className || !admissionNumber) {
-      return response.status(400).json({ message: 'First name, last name, class and admission number are required.' });
+    if (!firstName || !className || !admissionNumber) {
+      return response.status(400).json({ message: 'First name, class and admission number are required.' });
     }
 
     await connection.beginTransaction();
@@ -141,8 +141,8 @@ async function updateStudent(request, response) {
     const currentAdmissionNumber = String(request.params.admissionNumber || '').trim();
     const { firstName, middleName, lastName, guardian, className, dateOfBirth, branch } = normalizeStudentPayload(request.body);
 
-    if (!currentAdmissionNumber || !firstName || !lastName || !className) {
-      return response.status(400).json({ message: 'Admission number, first name, last name and class are required.' });
+    if (!currentAdmissionNumber || !firstName || !className) {
+      return response.status(400).json({ message: 'Admission number, first name and class are required.' });
     }
 
     await connection.beginTransaction();

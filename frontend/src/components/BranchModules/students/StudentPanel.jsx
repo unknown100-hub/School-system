@@ -123,7 +123,7 @@ export default function StudentPanel({ branchName, students, studentCount, onAdd
 
               Student Last name
 
-              <input value={form.Last_Name} onChange={(e) => setForm({ ...form, Last_Name: e.target.value })} placeholder="Student last name" required />
+              <input value={form.Last_Name} onChange={(e) => setForm({ ...form, Last_Name: e.target.value })} placeholder="Student last name" />
             </label>
             <label>
 
